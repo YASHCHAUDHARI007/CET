@@ -36,7 +36,9 @@ const formSchema = z.object({
     required_error: "Please select a subject.",
   }),
   chapters: z.string(),
-  difficultyMix: z.string().min(3, "Please specify the difficulty mix. E.g., '50% Easy, 30% Medium, 20% Hard'"),
+  difficultyMix: z.enum(["Easy", "Medium", "Hard"], {
+    required_error: "Please select a difficulty.",
+  }),
   numQuestions: z.coerce.number().int().positive("Number of questions must be positive.").min(1, "At least one question is required.").max(150, "You can generate a maximum of 150 questions at a time."),
   timeLimit: z.coerce.number().int().positive("Time limit must be positive."),
 });
@@ -53,7 +55,7 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       chapters: "",
-      difficultyMix: "40% Easy, 40% Medium, 20% Hard",
+      difficultyMix: "Medium",
       numQuestions: 10,
       timeLimit: 15,
       subject: undefined,
@@ -197,10 +199,19 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
                   name="difficultyMix"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Difficulty Mix</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., 50% Easy, 50% Hard" {...field} />
-                      </FormControl>
+                      <FormLabel>Difficulty</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a difficulty" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Easy">Easy</SelectItem>
+                          <SelectItem value="Medium">Medium</SelectItem>
+                          <SelectItem value="Hard">Hard</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -6,7 +6,7 @@ import { z } from "zod";
 const formSchema = z.object({
   subject: z.enum(["Physics", "Chemistry", "Mathematics", "Biology", "PCM (Full Syllabus)", "PCB (Full Syllabus)"]),
   chapters: z.string(),
-  difficultyMix: z.string().min(3, "Please specify the difficulty mix."),
+  difficultyMix: z.enum(["Easy", "Medium", "Hard"]),
   numQuestions: z.coerce.number().int().positive("Number of questions must be positive.").min(1, "At least one question is required.").max(150, "You can generate a maximum of 150 questions at a time."),
   timeLimit: z.coerce.number().int().positive("Time limit must be positive."),
 });
