@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import type { Answers, MarkedForReview, Question } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,7 +79,7 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
       setCurrentSectionIndex(prev => prev + 1);
       setCurrentQuestionIndex(0);
       setMarkedForReview([]);
-      setTimeLeft(sections[currentSectionIndex + 1].time);
+      setTimeLeft(prevTime => prevTime + sections[currentSectionIndex + 1].time);
     } else {
       finishQuiz();
     }
@@ -302,3 +302,5 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
     </div>
   );
 }
+
+    
