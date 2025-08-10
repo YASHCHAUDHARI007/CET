@@ -16,19 +16,20 @@ const formSchema = z.object({
 
 type FormSchema = z.infer<typeof formSchema>;
 
-async function generateQuestionsForSubject(baseInput: Pick<GenerateMHTCETQuestionInput, 'difficultyMix'>, subject: GenerateMHTCETQuestionInput['subject'], numQuestions: number) {
+async function generateQuestionsForSubject(subject: "Physics" | "Chemistry" | "Mathematics" | "Biology", numQuestions: number, difficultyMix: string, chapters: string = '') {
     const aiInput: GenerateMHTCETQuestionInput = {
-        ...baseInput,
         subject,
         numQuestions,
-        chapters: '', // Always full syllabus for this helper
+        difficultyMix,
+        chapters,
     };
     const result = await generateMHTCETQuestion(aiInput);
-    if (!result || !result.questions) {
-        throw new Error(`Failed to generate questions for ${subject}.`);
+    if (!result || !result.questions || result.questions.length !== numQuestions) {
+        throw new Error(`Failed to generate exactly ${numQuestions} questions for ${subject}.`);
     }
     return result.questions;
 }
+
 
 async function processQuestionDiagrams(questions: Question[]): Promise<Question[]> {
     const diagramPromises = questions.map(async (question) => {
@@ -64,20 +65,18 @@ export async function generateTest(data: FormSchema) {
      let allQuestions: Question[] = [];
 
      if (subject === "PCM (Full Syllabus)") {
-        const baseInput = { difficultyMix };
         const [physicsQuestions, chemistryQuestions, mathQuestions] = await Promise.all([
-            generateQuestionsForSubject(baseInput, "Physics", 50),
-            generateQuestionsForSubject(baseInput, "Chemistry", 50),
-            generateQuestionsForSubject(baseInput, "Mathematics", 50),
+            generateQuestionsForSubject("Physics", 50, difficultyMix),
+            generateQuestionsForSubject("Chemistry", 50, difficultyMix),
+            generateQuestionsForSubject("Mathematics", 50, difficultyMix),
         ]);
         allQuestions = [...physicsQuestions, ...chemistryQuestions, ...mathQuestions];
 
     } else if (subject === "PCB (Full Syllabus)") {
-        const baseInput = { difficultyMix };
         const [physicsQuestions, chemistryQuestions, biologyQuestions] = await Promise.all([
-            generateQuestionsForSubject(baseInput, "Physics", 50),
-            generateQuestionsForSubject(baseInput, "Chemistry", 50),
-            generateQuestionsForSubject(baseInput, "Biology", 100),
+            generateQuestionsForSubject("Physics", 50, difficultyMix),
+            generateQuestionsForSubject("Chemistry", 50, difficultyMix),
+            generateQuestionsForSubject("Biology", 100, difficultyMix),
         ]);
         allQuestions = [...physicsQuestions, ...chemistryQuestions, ...biologyQuestions];
     }
@@ -85,18 +84,9 @@ export async function generateTest(data: FormSchema) {
         if (!chapters || chapters.length === 0) {
             return { success: false, error: "Please select at least one chapter for the selected subject." };
         }
-        const aiInput: GenerateMHTCETQuestionInput = {
-            subject,
-            chapters: chapters.join(', '),
-            difficultyMix,
-            numQuestions,
-        };
-        const result = await generateMHTCETQuestion(aiInput);
-        if (result && result.questions) {
-            allQuestions = result.questions;
-        } else {
-            return { success: false, error: "Failed to generate questions. The AI model might be unavailable." };
-        }
+        const subjectAsEnum = subject as "Physics" | "Chemistry" | "Mathematics" | "Biology";
+        const generatedQuestions = await generateQuestionsForSubject(subjectAsEnum, numQuestions, difficultyMix, chapters.join(', '));
+        allQuestions = generatedQuestions;
     }
 
     const questionsWithDiagrams = await processQuestionDiagrams(allQuestions);

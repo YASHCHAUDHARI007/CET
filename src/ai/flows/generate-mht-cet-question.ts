@@ -56,9 +56,7 @@ const generateMHTCETQuestionPrompt = ai.definePrompt({
   {{#if chapters}}
   Generate {{numQuestions}} multiple-choice questions for {{subject}} from the chapters {{chapters}}, with a difficulty mix of: {{difficultyMix}}.
   {{else}}
-  Generate {{numQuestions}} multiple-choice questions for a full syllabus MHT CET test for {{subject}}, with a difficulty mix of: {{difficultyMix}}. 
-  - For PCM (Full Syllabus), generate 50 questions each from Physics, Chemistry, and Mathematics.
-  - For PCB (Full Syllabus), generate 100 questions from Biology, 50 from Physics, and 50 from Chemistry.
+  Generate {{numQuestions}} multiple-choice questions for a full syllabus MHT CET test for {{subject}}, with a difficulty mix of: {{difficultyMix}}.
   {{/if}}
 
   For subjects like Physics, Biology, and Chemistry, approximately 20% of the questions should require a diagram to be answered.
@@ -77,23 +75,14 @@ const generateMHTCETQuestionFlow = ai.defineFlow(
     outputSchema: GenerateMHTCETQuestionOutputSchema,
   },
   async (input) => {
-    const BATCH_SIZE = 10;
-    const numBatches = Math.ceil(input.numQuestions / BATCH_SIZE);
-    const promises = [];
-
-    for (let i = 0; i < numBatches; i++) {
-      const numQuestionsInBatch =
-        i === numBatches - 1
-          ? input.numQuestions - i * BATCH_SIZE
-          : BATCH_SIZE;
-
-      const batchInput = { ...input, numQuestions: numQuestionsInBatch };
-      promises.push(generateMHTCETQuestionPrompt(batchInput));
+    const result = await generateMHTCETQuestionPrompt(input);
+    const questions = result.output?.questions || [];
+    
+    // Ensure the exact number of questions is returned
+    if (questions.length > input.numQuestions) {
+      return { questions: questions.slice(0, input.numQuestions) };
     }
-
-    const results = await Promise.all(promises);
-    const allQuestions = results.flatMap(result => result.output?.questions || []);
-
-    return { questions: allQuestions.slice(0, input.numQuestions) };
+    
+    return { questions };
   }
 );
