@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Bookmark, ChevronLeft, ChevronRight, Timer, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -125,8 +125,8 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                    <AlertDialogAction onClick={finishQuiz} className="bg-accent hover:bg-accent/90">Yes, Finish Test</AlertDialogAction>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={finishQuiz} className="bg-accent hover:bg-accent/90">Yes, Finish Test</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -177,8 +177,8 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
                         </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                        <AlertDialogAction onClick={onExit} variant="destructive">Yes, Exit</AlertDialogAction>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={onExit} variant="destructive">Yes, Exit</AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
