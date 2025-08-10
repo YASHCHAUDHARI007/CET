@@ -78,7 +78,7 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
     } else if (selectedSubject === "PCB (Full Syllabus)") {
       form.setValue('chapters', '');
       form.setValue('numQuestions', 200);
-      form.setValue('timeLimit', 240);
+      form.setValue('timeLimit', 180);
     }
   }, [selectedSubject, form]);
 

@@ -21,7 +21,7 @@ export async function generateTest(data: FormSchema) {
   } else if (data.subject === "PCB (Full Syllabus)") {
     data.chapters = "";
     data.numQuestions = 200;
-    data.timeLimit = 240;
+    data.timeLimit = 180;
   }
   else {
     if (!data.chapters || data.chapters.trim().length < 3) {
