@@ -12,7 +12,7 @@ const Header = () => (
       </div>
       <Button variant="ghost" asChild>
         <Link href="/prepare">
-          Log In
+          Start Preparing
           <LogIn className="ml-2 h-4 w-4" />
         </Link>
       </Button>
@@ -42,20 +42,17 @@ export default function Home() {
         <p className="max-w-2xl mx-auto text-lg text-muted-foreground mb-8">
           Generate unlimited, customized test series from any chapter, with adjustable difficulty. Our AI crafts unique questions to sharpen your skills for exam day.
         </p>
-        <Card className="w-full max-w-md shadow-lg">
-          <CardContent className="p-6 flex flex-col gap-4">
-            <Button size="lg" asChild className="w-full">
-              <Link href="/prepare">
-                <svg role="img" viewBox="0 0 24 24" className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.6 1.84-4.84 1.84-5.84 0-10.62-4.7-10.62-10.54s4.78-10.54 10.62-10.54c3.33 0 5.43 1.33 6.68 2.54l2.62-2.62C19.8 1.09 16.7.2 12.48.2 5.58.2.2 5.7.2 12.6s5.38 12.4 12.28 12.4c3.6 0 6.33-1.23 8.4-3.35 2.15-2.2 2.78-5.3 2.78-8.62 0-.74-.06-1.47-.2-2.18h-11Z" fill="currentColor"/></svg>
-                Continue with Google
-              </Link>
-            </Button>
-            <Button size="lg" variant="secondary" asChild className="w-full">
-               <Link href="/prepare">
-                <Mail className="mr-2 h-4 w-4" />
-                Continue with Email
-              </Link>
-            </Button>
+        <Card className="w-full max-w-2xl shadow-lg">
+          <CardContent className="p-2">
+             <iframe
+                src="https://docs.google.com/forms/d/e/1FAIpQLScPsoCgNTqornAI_F6iA-R2-2e-2l-3C8WpWwYJg/viewform?embedded=true"
+                width="100%"
+                height="520"
+                frameBorder="0"
+                marginHeight={0}
+                marginWidth={0}>
+                Loading…
+            </iframe>
           </CardContent>
         </Card>
       </main>
