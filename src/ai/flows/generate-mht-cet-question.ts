@@ -53,7 +53,9 @@ const generateMHTCETQuestionPrompt = ai.definePrompt({
   {{#if chapters}}
   Generate {{numQuestions}} multiple-choice questions for {{subject}} from the chapters {{chapters}}, with a difficulty mix of: {{difficultyMix}}.
   {{else}}
-  Generate {{numQuestions}} multiple-choice questions for a full syllabus MHT CET test for {{subject}}, with a difficulty mix of: {{difficultyMix}}. For PCM, include Physics, Chemistry, and Mathematics. For PCB, include Physics, Chemistry, and Biology.
+  Generate {{numQuestions}} multiple-choice questions for a full syllabus MHT CET test for {{subject}}, with a difficulty mix of: {{difficultyMix}}. 
+  - For PCM (Full Syllabus), generate 50 questions each from Physics, Chemistry, and Mathematics.
+  - For PCB (Full Syllabus), generate 100 questions from Biology, 50 from Physics, and 50 from Chemistry.
   {{/if}}
   
   Follow the MHT CET syllabus and style. Each question must have 4 options (A-D), one correct answer, and a detailed explanation.

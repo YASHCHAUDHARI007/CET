@@ -40,7 +40,7 @@ const formSchema = z.object({
   difficultyMix: z.enum(["Easy", "Medium", "Hard"], {
     required_error: "Please select a difficulty.",
   }),
-  numQuestions: z.coerce.number().int().positive("Number of questions must be positive.").min(1, "At least one question is required.").max(150, "You can generate a maximum of 150 questions at a time."),
+  numQuestions: z.coerce.number().int().positive("Number of questions must be positive.").min(1, "At least one question is required.").max(200, "You can generate a maximum of 200 questions at a time."),
   timeLimit: z.coerce.number().int().positive("Time limit must be positive."),
 });
 
@@ -71,12 +71,16 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
   const isFullSyllabus = selectedSubject === "PCM (Full Syllabus)" || selectedSubject === "PCB (Full Syllabus)";
 
   useEffect(() => {
-    if (isFullSyllabus) {
+    if (selectedSubject === "PCM (Full Syllabus)") {
       form.setValue('chapters', '');
       form.setValue('numQuestions', 150);
       form.setValue('timeLimit', 180);
+    } else if (selectedSubject === "PCB (Full Syllabus)") {
+      form.setValue('chapters', '');
+      form.setValue('numQuestions', 200);
+      form.setValue('timeLimit', 240);
     }
-  }, [isFullSyllabus, form]);
+  }, [selectedSubject, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);

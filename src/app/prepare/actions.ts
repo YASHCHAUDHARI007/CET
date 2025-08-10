@@ -7,18 +7,23 @@ const formSchema = z.object({
   subject: z.enum(["Physics", "Chemistry", "Mathematics", "Biology", "PCM (Full Syllabus)", "PCB (Full Syllabus)"]),
   chapters: z.string(),
   difficultyMix: z.enum(["Easy", "Medium", "Hard"]),
-  numQuestions: z.coerce.number().int().positive("Number of questions must be positive.").min(1, "At least one question is required.").max(150, "You can generate a maximum of 150 questions at a time."),
+  numQuestions: z.coerce.number().int().positive("Number of questions must be positive.").min(1, "At least one question is required.").max(200, "You can generate a maximum of 200 questions at a time."),
   timeLimit: z.coerce.number().int().positive("Time limit must be positive."),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
 
 export async function generateTest(data: FormSchema) {
-  if ((data.subject === "PCM (Full Syllabus)" || data.subject === "PCB (Full Syllabus)")) {
+  if (data.subject === "PCM (Full Syllabus)") {
     data.chapters = ""; // No chapters needed for full syllabus
     data.numQuestions = 150;
     data.timeLimit = 180;
-  } else {
+  } else if (data.subject === "PCB (Full Syllabus)") {
+    data.chapters = "";
+    data.numQuestions = 200;
+    data.timeLimit = 240;
+  }
+  else {
     if (!data.chapters || data.chapters.trim().length < 3) {
       return { success: false, error: "Please enter at least one chapter for the selected subject." };
     }
