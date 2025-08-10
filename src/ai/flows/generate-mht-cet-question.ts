@@ -66,8 +66,24 @@ const generateMHTCETQuestionFlow = ai.defineFlow(
     inputSchema: GenerateMHTCETQuestionInputSchema,
     outputSchema: GenerateMHTCETQuestionOutputSchema,
   },
-  async input => {
-    const {output} = await generateMHTCETQuestionPrompt(input);
-    return output!;
+  async (input) => {
+    const BATCH_SIZE = 10;
+    const numBatches = Math.ceil(input.numQuestions / BATCH_SIZE);
+    const promises = [];
+
+    for (let i = 0; i < numBatches; i++) {
+      const numQuestionsInBatch =
+        i === numBatches - 1
+          ? input.numQuestions - i * BATCH_SIZE
+          : BATCH_SIZE;
+
+      const batchInput = { ...input, numQuestions: numQuestionsInBatch };
+      promises.push(generateMHTCETQuestionPrompt(batchInput));
+    }
+
+    const results = await Promise.all(promises);
+    const allQuestions = results.flatMap(result => result.output?.questions || []);
+
+    return { questions: allQuestions.slice(0, input.numQuestions) };
   }
 );
