@@ -1,3 +1,4 @@
+
 "use server";
 
 import { generateMHTCETQuestion, GenerateMHTCETQuestionInput } from "@/ai/flows/generate-mht-cet-question";
@@ -13,40 +14,66 @@ const formSchema = z.object({
 
 type FormSchema = z.infer<typeof formSchema>;
 
-export async function generateTest(data: FormSchema) {
-  if (data.subject === "PCM (Full Syllabus)") {
-    data.chapters = []; // No chapters needed for full syllabus
-    data.numQuestions = 150;
-    data.timeLimit = 180;
-  } else if (data.subject === "PCB (Full Syllabus)") {
-    data.chapters = [];
-    data.numQuestions = 200;
-    data.timeLimit = 180;
-  }
-  else {
-    if (!data.chapters || data.chapters.length === 0) {
-      return { success: false, error: "Please select at least one chapter for the selected subject." };
+async function generateQuestionsForSubject(baseInput: Omit<GenerateMHTCETQuestionInput, 'chapters'>, subject: GenerateMHTCETQuestionInput['subject'], numQuestions: number) {
+    const aiInput: GenerateMHTCETQuestionInput = {
+        ...baseInput,
+        subject,
+        numQuestions,
+        chapters: '', // Always full syllabus for this helper
+    };
+    const result = await generateMHTCETQuestion(aiInput);
+    if (!result || !result.questions) {
+        throw new Error(`Failed to generate questions for ${subject}.`);
     }
-  }
+    return result.questions;
+}
 
+export async function generateTest(data: FormSchema) {
   const validatedData = formSchema.safeParse(data);
 
   if (!validatedData.success) {
     return { success: false, error: "Invalid input data." };
   }
+  
+  const { subject, chapters, difficultyMix, numQuestions, timeLimit } = validatedData.data;
 
   try {
-    const aiInput: GenerateMHTCETQuestionInput = {
-      subject: validatedData.data.subject,
-      chapters: validatedData.data.chapters.join(', '),
-      difficultyMix: validatedData.data.difficultyMix,
-      numQuestions: validatedData.data.numQuestions,
-    };
-    const result = await generateMHTCETQuestion(aiInput);
-    if (result && result.questions) {
-      return { success: true, questions: result.questions, timeLimit: validatedData.data.timeLimit };
-    } else {
-      return { success: false, error: "Failed to generate questions. The AI model might be unavailable." };
+     if (subject === "PCM (Full Syllabus)") {
+        const baseInput = { difficultyMix };
+        const [physicsQuestions, chemistryQuestions, mathQuestions] = await Promise.all([
+            generateQuestionsForSubject(baseInput, "Physics", 50),
+            generateQuestionsForSubject(baseInput, "Chemistry", 50),
+            generateQuestionsForSubject(baseInput, "Mathematics", 50),
+        ]);
+        const allQuestions = [...physicsQuestions, ...chemistryQuestions, ...mathQuestions];
+        return { success: true, questions: allQuestions, timeLimit: 180 };
+
+    } else if (subject === "PCB (Full Syllabus)") {
+        const baseInput = { difficultyMix };
+        const [physicsQuestions, chemistryQuestions, biologyQuestions] = await Promise.all([
+            generateQuestionsForSubject(baseInput, "Physics", 50),
+            generateQuestionsForSubject(baseInput, "Chemistry", 50),
+            generateQuestionsForSubject(baseInput, "Biology", 100),
+        ]);
+        const allQuestions = [...physicsQuestions, ...chemistryQuestions, ...biologyQuestions];
+        return { success: true, questions: allQuestions, timeLimit: 180 };
+    }
+    else {
+        if (!chapters || chapters.length === 0) {
+            return { success: false, error: "Please select at least one chapter for the selected subject." };
+        }
+        const aiInput: GenerateMHTCETQuestionInput = {
+            subject,
+            chapters: chapters.join(', '),
+            difficultyMix,
+            numQuestions,
+        };
+        const result = await generateMHTCETQuestion(aiInput);
+        if (result && result.questions) {
+            return { success: true, questions: result.questions, timeLimit };
+        } else {
+            return { success: false, error: "Failed to generate questions. The AI model might be unavailable." };
+        }
     }
   } catch (e) {
     console.error(e);
