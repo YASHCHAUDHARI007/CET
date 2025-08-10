@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BookOpen, LogIn, Mail, Sparkles, ArrowRight } from 'lucide-react';
@@ -6,9 +7,12 @@ import Link from 'next/link';
 const Header = () => (
   <header className="absolute top-0 left-0 right-0 p-4 bg-transparent z-10">
     <div className="container mx-auto flex justify-between items-center">
-      <div className="flex items-center gap-2">
-        <BookOpen className="w-8 h-8 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">CET Prep</h1>
+      <div className="flex items-start gap-2">
+        <BookOpen className="w-8 h-8 text-primary mt-1" />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">CET Prep</h1>
+          <p className="text-xs text-muted-foreground">By GEN Z STUDIO</p>
+        </div>
       </div>
     </div>
   </header>

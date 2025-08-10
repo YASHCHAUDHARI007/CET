@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -13,9 +14,12 @@ type GameState = 'configuring' | 'taking_quiz' | 'viewing_results';
 const Header = () => (
   <header className="py-4 bg-transparent">
     <div className="container mx-auto flex justify-between items-center">
-      <Link href="/" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
-        <BookOpen className="w-8 h-8 text-primary" />
-        <h1 className="text-2xl font-bold">CET Prep</h1>
+      <Link href="/" className="flex items-start gap-2 text-foreground hover:text-primary transition-colors">
+        <BookOpen className="w-8 h-8 text-primary mt-1" />
+        <div>
+          <h1 className="text-2xl font-bold">CET Prep</h1>
+          <p className="text-xs text-muted-foreground">By GEN Z STUDIO</p>
+        </div>
       </Link>
     </div>
   </header>
