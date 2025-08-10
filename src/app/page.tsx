@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BookOpen, LogIn, Mail, Sparkles } from 'lucide-react';
+import { BookOpen, LogIn, Mail, Sparkles, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 const Header = () => (
@@ -37,19 +37,26 @@ export default function Home() {
           Generate unlimited, customized test series from any chapter, with adjustable difficulty. Our AI crafts unique questions to sharpen your skills for exam day.
         </p>
         <Card className="w-full max-w-3xl h-[600px] shadow-lg">
-           <iframe 
-              src="https://docs.google.com/forms/d/e/1FAIpQLSehS4B82eq_z0bLIICcmm6WXzQI69TR7aRWXWKSbPAiWhjW_w/viewform?embedded=true" 
-              width="100%" 
-              height="100%" 
-              frameBorder="0" 
+           <iframe
+              src="https://docs.google.com/forms/d/e/1FAIpQLSehS4B82eq_z0bLIICcmm6WXzQI69TR7aRWXWKSbPAiWhjW_w/viewform?embedded=true"
+              width="100%"
+              height="100%"
+              frameBorder="0"
               marginHeight={0}
               marginWidth={0}>
               Loading…
             </iframe>
         </Card>
-        <p className="text-xs text-muted-foreground mt-4">
-          After submitting the form, you will be redirected to the test preparation page.
-        </p>
+        <div className="mt-6">
+            <p className="text-sm text-muted-foreground mb-4">
+            After submitting the form, click the button below to proceed.
+            </p>
+            <Button asChild size="lg">
+                <Link href="/prepare">
+                    Continue to Test <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+            </Button>
+        </div>
       </main>
     </div>
   );
