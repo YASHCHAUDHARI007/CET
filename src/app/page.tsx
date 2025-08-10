@@ -45,7 +45,7 @@ export default function Home() {
         <Card className="w-full max-w-2xl shadow-lg">
           <CardContent className="p-2">
              <iframe
-                src="https://docs.google.com/forms/d/e/1FAIpQLScPsoCgNTqornAI_F6iA-R2-2e-2l-3C8WpWwYJg/viewform?embedded=true"
+                src="https://docs.google.com/forms/d/e/1FAIpQLSehS4B82eq_z0bLIICcmm6WXzQI69TR7aRWXWKSbPAiWhjW_w/viewform?embedded=true"
                 width="100%"
                 height="520"
                 frameBorder="0"
