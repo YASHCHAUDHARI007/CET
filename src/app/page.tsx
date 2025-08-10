@@ -37,7 +37,7 @@ export default function Home() {
         <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter mb-4 text-foreground font-headline">
           Master the MHT CET with Personalized Practice
         </h2>
-        <p className="max-w-2xl mx-auto text-lg text-muted-foreground mb-8">
+        <p className="max-w-2xl mx-auto text-base md:text-lg text-muted-foreground mb-8">
           Generate unlimited, customized test series from any chapter, with adjustable difficulty. Our AI crafts unique questions to sharpen your skills for exam day.
         </p>
         <div className="mt-6 text-center">

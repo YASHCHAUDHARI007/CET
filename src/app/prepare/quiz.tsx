@@ -177,16 +177,16 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
   const seconds = timeLeft % 60;
 
   return (
-    <div ref={quizContainerRef} className="flex flex-col md:flex-row gap-8 max-w-7xl mx-auto bg-background p-4 rounded-lg" onCopy={(e) => e.preventDefault()}>
+    <div ref={quizContainerRef} className="flex flex-col xl:flex-row gap-8 max-w-7xl mx-auto bg-background p-2 md:p-4 rounded-lg" onCopy={(e) => e.preventDefault()}>
       <div className="flex-grow">
         <Card className="shadow-lg">
           <CardHeader className="border-b">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <div>
                 <CardTitle>Question {currentQuestionIndex + 1} of {questionsInCurrentSection.length}</CardTitle>
                 {isPcmTest && <p className="text-sm text-muted-foreground mt-1">Section: {currentSection.name}</p>}
               </div>
-              <div className="flex items-center gap-2 bg-primary/10 text-primary font-semibold px-3 py-1.5 rounded-full">
+              <div className="flex items-center gap-2 bg-primary/10 text-primary font-semibold px-3 py-1.5 rounded-full self-start sm:self-center">
                   <Timer className="w-5 h-5" />
                   <span>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</span>
               </div>
@@ -199,14 +199,14 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
                     <Image src={currentQuestion.diagram} alt={`Diagram for question ${currentQuestionIndex + 1}`} width={300} height={200} className="object-contain" />
                 </div>
             )}
-            <p className="text-lg font-semibold mb-6">{currentQuestion.question}</p>
+            <p className="text-base md:text-lg font-semibold mb-6">{currentQuestion.question}</p>
             <RadioGroup key={globalQuestionIndex} value={answers[globalQuestionIndex]} onValueChange={handleAnswerChange}>
                 {currentQuestion.options.map((option, index) => {
                     const optionLetter = String.fromCharCode(65 + index);
                     return (
-                        <div key={index} className="flex items-center space-x-3 p-4 border rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-all">
+                        <div key={index} className="flex items-center space-x-3 p-3 md:p-4 border rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-all">
                             <RadioGroupItem value={optionLetter} id={`q${globalQuestionIndex}-option-${index}`} />
-                            <Label htmlFor={`q${globalQuestionIndex}-option-${index}`} className="text-base flex-grow cursor-pointer">
+                            <Label htmlFor={`q${globalQuestionIndex}-option-${index}`} className="text-sm md:text-base flex-grow cursor-pointer">
                                 {optionLetter}. {option}
                             </Label>
                         </div>
@@ -220,7 +220,7 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
             <ChevronLeft className="mr-2 h-4 w-4"/> Previous
           </Button>
            <Button variant="outline" onClick={toggleMarkForReview} className={cn(markedForReview.includes(currentQuestionIndex) && 'bg-accent text-accent-foreground')}>
-            <Bookmark className="mr-2 h-4 w-4"/> Mark for Review
+            <Bookmark className="mr-2 h-4 w-4"/> Mark
           </Button>
           {currentQuestionIndex === questionsInCurrentSection.length - 1 ? (
              <AlertDialog>
@@ -254,14 +254,14 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
           )}
         </div>
       </div>
-      <aside className="w-full md:w-64">
+      <aside className="w-full xl:w-64 xl:flex-shrink-0">
         <Card className="shadow-lg">
             <CardHeader>
                 <CardTitle className="text-lg">Question Palette</CardTitle>
                 {isPcmTest && <p className="text-sm text-muted-foreground">{currentSection.name}</p>}
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-5 sm:grid-cols-8 xl:grid-cols-5 gap-2">
                     {questionsInCurrentSection.map((_, index) => {
                         const globalIdx = isPcmTest && currentSectionIndex === 1 ? index + sections[0].questions.length : index;
                         const isAnswered = answers[globalIdx] !== undefined;
@@ -274,6 +274,7 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
                                 size="icon"
                                 onClick={() => handleGoToQuestion(index)}
                                 className={cn(
+                                    'h-9 w-9 text-xs sm:h-10 sm:w-10 sm:text-sm',
                                     isAnswered && 'bg-green-200 text-green-800 border-green-400 hover:bg-green-300',
                                     isMarked && 'bg-yellow-200 text-yellow-800 border-yellow-400 hover:bg-yellow-300',
                                     isCurrent && 'ring-2 ring-primary ring-offset-2'

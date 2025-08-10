@@ -65,19 +65,19 @@ export function Results({ questions, answers, onRestart }: ResultsProps) {
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div className="p-4 bg-primary/10 rounded-lg">
                 <p className="text-sm text-muted-foreground">Score</p>
-                <p className="text-2xl font-bold text-primary">{achievedMarks}/{totalMarks} ({scorePercentage.toFixed(2)}%)</p>
+                <p className="text-lg sm:text-2xl font-bold text-primary">{achievedMarks}/{totalMarks} ({scorePercentage.toFixed(2)}%)</p>
             </div>
             <div className="p-4 bg-accent/10 rounded-lg">
                 <p className="text-sm text-muted-foreground">Correct</p>
-                <p className="text-2xl font-bold text-accent">{correctAnswers}</p>
+                <p className="text-lg sm:text-2xl font-bold text-accent">{correctAnswers}</p>
             </div>
              <div className="p-4 bg-destructive/10 rounded-lg">
                 <p className="text-sm text-muted-foreground">Incorrect</p>
-                <p className="text-2xl font-bold text-destructive">{incorrectAnswers}</p>
+                <p className="text-lg sm:text-2xl font-bold text-destructive">{incorrectAnswers}</p>
             </div>
             <div className="p-4 bg-yellow-400/10 rounded-lg">
                 <p className="text-sm text-muted-foreground">Not Attempted</p>
-                <p className="text-2xl font-bold text-yellow-500">{notAttempted}</p>
+                <p className="text-lg sm:text-2xl font-bold text-yellow-500">{notAttempted}</p>
             </div>
         </CardContent>
       </Card>
@@ -86,9 +86,9 @@ export function Results({ questions, answers, onRestart }: ResultsProps) {
       <Accordion type="single" collapsible className="w-full">
         {questions.map((question, index) => (
           <AccordionItem value={`item-${index}`} key={index}>
-            <AccordionTrigger className="hover:no-underline">
+            <AccordionTrigger className="hover:no-underline text-left">
               <div className="flex justify-between items-center w-full pr-4">
-                 <span className="text-left font-medium flex items-center gap-2">
+                 <span className="font-medium flex items-center gap-2">
                   Question {index + 1} ({question.marks} {question.marks > 1 ? 'marks' : 'mark'})
                   {question.diagram && <ImageIcon className="h-4 w-4 text-muted-foreground" />}
                 </span>
@@ -108,7 +108,7 @@ export function Results({ questions, answers, onRestart }: ResultsProps) {
                     const isCorrect = optionLetter === question.answer;
                     const isUserChoice = optionLetter === answers[index];
                     return (
-                        <div key={optIndex} className={cn("p-2 rounded-md border", 
+                        <div key={optIndex} className={cn("p-2 rounded-md border text-sm", 
                             isCorrect && "bg-accent/20 border-accent",
                             isUserChoice && !isCorrect && "bg-destructive/20 border-destructive"
                         )}>
