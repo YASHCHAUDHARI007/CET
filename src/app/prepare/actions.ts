@@ -4,16 +4,26 @@ import { generateMHTCETQuestion, GenerateMHTCETQuestionInput } from "@/ai/flows/
 import { z } from "zod";
 
 const formSchema = z.object({
-  subject: z.enum(["Physics", "Chemistry", "Mathematics", "Biology"]),
-  chapters: z.string().min(3, "Please enter at least one chapter."),
+  subject: z.enum(["Physics", "Chemistry", "Mathematics", "Biology", "PCM (Full Syllabus)", "PCB (Full Syllabus)"]),
+  chapters: z.string(),
   difficultyMix: z.string().min(3, "Please specify the difficulty mix."),
-  numQuestions: z.coerce.number().int().positive("Number of questions must be positive.").min(1, "At least one question is required.").max(50, "You can generate a maximum of 50 questions at a time."),
+  numQuestions: z.coerce.number().int().positive("Number of questions must be positive.").min(1, "At least one question is required.").max(150, "You can generate a maximum of 150 questions at a time."),
   timeLimit: z.coerce.number().int().positive("Time limit must be positive."),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
 
 export async function generateTest(data: FormSchema) {
+  if ((data.subject === "PCM (Full Syllabus)" || data.subject === "PCB (Full Syllabus)")) {
+    data.chapters = ""; // No chapters needed for full syllabus
+    data.numQuestions = 150;
+    data.timeLimit = 180;
+  } else {
+    if (!data.chapters || data.chapters.trim().length < 3) {
+      return { success: false, error: "Please enter at least one chapter for the selected subject." };
+    }
+  }
+
   const validatedData = formSchema.safeParse(data);
 
   if (!validatedData.success) {
@@ -29,7 +39,7 @@ export async function generateTest(data: FormSchema) {
     };
     const result = await generateMHTCETQuestion(aiInput);
     if (result && result.questions) {
-      return { success: true, questions: result.questions };
+      return { success: true, questions: result.questions, timeLimit: validatedData.data.timeLimit };
     } else {
       return { success: false, error: "Failed to generate questions. The AI model might be unavailable." };
     }

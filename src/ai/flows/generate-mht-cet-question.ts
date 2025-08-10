@@ -17,8 +17,8 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateMHTCETQuestionInputSchema = z.object({
-  subject: z.enum(['Physics', 'Chemistry', 'Mathematics', 'Biology']).describe('The subject for which to generate questions.'),
-  chapters: z.string().describe('A comma-separated list of chapters from which to generate questions.'),
+  subject: z.enum(['Physics', 'Chemistry', 'Mathematics', 'Biology', 'PCM (Full Syllabus)', 'PCB (Full Syllabus)']).describe('The subject for which to generate questions.'),
+  chapters: z.string().describe('A comma-separated list of chapters from which to generate questions. Can be empty for full syllabus tests.'),
   difficultyMix: z.string().describe('The difficulty mix (Easy, Medium, Hard %) for the questions.'),
   numQuestions: z.number().int().positive().describe('The number of questions to generate for the subject.'),
 });
@@ -26,7 +26,7 @@ const GenerateMHTCETQuestionInputSchema = z.object({
 export type GenerateMHTCETQuestionInput = z.infer<typeof GenerateMHTCETQuestionInputSchema>;
 
 const GeneratedQuestionSchema = z.object({
-  subject: z.enum(['Physics', 'Chemistry', 'Mathematics', 'Biology']).describe('The subject of the question.'),
+  subject: z.enum(['Physics', 'Chemistry', 'Mathematics', 'Biology', 'PCM (Full Syllabus)', 'PCB (Full Syllabus)']).describe('The subject of the question.'),
   chapter: z.string().describe('The chapter from which the question is taken.'),
   question: z.string().describe('The multiple-choice question.'),
   options: z.array(z.string()).length(4).describe('An array of four possible answers.'),
@@ -48,7 +48,16 @@ const generateMHTCETQuestionPrompt = ai.definePrompt({
   name: 'generateMHTCETQuestionPrompt',
   input: {schema: GenerateMHTCETQuestionInputSchema},
   output: {schema: GenerateMHTCETQuestionOutputSchema},
-  prompt: `You are an expert MHT CET question setter. Generate {{numQuestions}} multiple-choice questions for {{subject}} from the chapters {{chapters}}, difficulty mix: {{difficultyMix}}. Follow the MHT CET syllabus and style. Each question must have 4 options (A-D), one correct answer, and a detailed explanation. Output only valid JSON with fields: subject, chapter, question, options[], answer, explanation.`,
+  prompt: `You are an expert MHT CET question setter.
+  
+  {{#if chapters}}
+  Generate {{numQuestions}} multiple-choice questions for {{subject}} from the chapters {{chapters}}, with a difficulty mix of: {{difficultyMix}}.
+  {{else}}
+  Generate {{numQuestions}} multiple-choice questions for a full syllabus MHT CET test for {{subject}}, with a difficulty mix of: {{difficultyMix}}. For PCM, include Physics, Chemistry, and Mathematics. For PCB, include Physics, Chemistry, and Biology.
+  {{/if}}
+  
+  Follow the MHT CET syllabus and style. Each question must have 4 options (A-D), one correct answer, and a detailed explanation.
+  Output only valid JSON with fields: subject, chapter, question, options[], answer, explanation.`,
 });
 
 const generateMHTCETQuestionFlow = ai.defineFlow(

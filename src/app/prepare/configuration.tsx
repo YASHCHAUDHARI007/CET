@@ -1,8 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,12 +32,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles } from "lucide-react";
 
 const formSchema = z.object({
-  subject: z.enum(["Physics", "Chemistry", "Mathematics", "Biology"], {
+  subject: z.enum(["Physics", "Chemistry", "Mathematics", "Biology", "PCM (Full Syllabus)", "PCB (Full Syllabus)"], {
     required_error: "Please select a subject.",
   }),
-  chapters: z.string().min(3, "Please enter at least one chapter."),
+  chapters: z.string(),
   difficultyMix: z.string().min(3, "Please specify the difficulty mix. E.g., '50% Easy, 30% Medium, 20% Hard'"),
-  numQuestions: z.coerce.number().int().positive("Number of questions must be positive.").min(1, "At least one question is required.").max(50, "You can generate a maximum of 50 questions at a time."),
+  numQuestions: z.coerce.number().int().positive("Number of questions must be positive.").min(1, "At least one question is required.").max(150, "You can generate a maximum of 150 questions at a time."),
   timeLimit: z.coerce.number().int().positive("Time limit must be positive."),
 });
 
@@ -55,15 +56,37 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
       difficultyMix: "40% Easy, 40% Medium, 20% Hard",
       numQuestions: 10,
       timeLimit: 15,
+      subject: undefined,
     },
   });
+
+  const selectedSubject = useWatch({
+    control: form.control,
+    name: 'subject'
+  });
+
+  const isFullSyllabus = selectedSubject === "PCM (Full Syllabus)" || selectedSubject === "PCB (Full Syllabus)";
+
+  useEffect(() => {
+    if (isFullSyllabus) {
+      form.setValue('chapters', '');
+      form.setValue('numQuestions', 150);
+      form.setValue('timeLimit', 180);
+    }
+  }, [isFullSyllabus, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
+      if (!isFullSyllabus && (!values.chapters || values.chapters.trim().length < 3)) {
+        form.setError("chapters", { type: "manual", message: "Please enter at least one chapter." });
+        setIsLoading(false);
+        return;
+      }
+
       const result = await generateTest(values);
-      if (result.success && result.questions) {
-        onTestGenerated(result.questions, values.timeLimit);
+      if (result.success && result.questions && result.timeLimit) {
+        onTestGenerated(result.questions, result.timeLimit);
       } else {
         toast({
           variant: "destructive",
@@ -113,31 +136,35 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
                       <SelectItem value="Chemistry">Chemistry</SelectItem>
                       <SelectItem value="Mathematics">Mathematics</SelectItem>
                       <SelectItem value="Biology">Biology</SelectItem>
+                      <SelectItem value="PCM (Full Syllabus)">PCM (Full Syllabus)</SelectItem>
+                      <SelectItem value="PCB (Full Syllabus)">PCB (Full Syllabus)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="chapters"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Chapters</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="e.g., Rotational Dynamics, Thermodynamics, Electrostatics"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Enter chapter names, separated by commas.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isFullSyllabus && (
+              <FormField
+                control={form.control}
+                name="chapters"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Chapters</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="e.g., Rotational Dynamics, Thermodynamics, Electrostatics"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Enter chapter names, separated by commas.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <FormField
                 control={form.control}
@@ -146,7 +173,7 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
                   <FormItem>
                     <FormLabel>Number of Questions</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input type="number" {...field} disabled={isFullSyllabus}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -159,7 +186,7 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
                   <FormItem>
                     <FormLabel>Time Limit (Minutes)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input type="number" {...field} disabled={isFullSyllabus}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -180,7 +207,7 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
                 />
             </div>
             
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+            <Button type="submit" className="w-full" size="lg" disabled={isLoading || !selectedSubject}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
