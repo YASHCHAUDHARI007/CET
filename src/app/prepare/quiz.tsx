@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { Answers, MarkedForReview, Question } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Bookmark, ChevronLeft, ChevronRight, Timer, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 type QuizProps = {
   questions: Question[];
@@ -23,10 +24,58 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
   const [answers, setAnswers] = useState<Answers>({});
   const [timeLeft, setTimeLeft] = useState(timeLimit * 60);
   const [markedForReview, setMarkedForReview] = useState<MarkedForReview>([]);
+  const quizContainerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const finishQuiz = useCallback(() => {
+    // Exit fullscreen before finishing
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(err => console.error("Could not exit fullscreen", err));
+    }
     onFinish(answers);
   }, [answers, onFinish]);
+
+  // Fullscreen and anti-cheating effects
+  useEffect(() => {
+    const elem = quizContainerRef.current;
+    if (elem) {
+      elem.requestFullscreen().catch(err => {
+        console.warn(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+        toast({
+            variant: "destructive",
+            title: "Fullscreen Required",
+            description: "Please enable fullscreen mode to continue the test for a secure experience.",
+        });
+      });
+    }
+
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        toast({
+          variant: "destructive",
+          title: "Test Finished",
+          description: "You have exited fullscreen mode, so the test has been submitted automatically.",
+        });
+        finishQuiz();
+      }
+    };
+    
+    const preventCopy = (e: ClipboardEvent) => e.preventDefault();
+    
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener('copy', preventCopy);
+    document.addEventListener('cut', preventCopy);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener('copy', preventCopy);
+      document.removeEventListener('cut', preventCopy);
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(err => console.error("Cleanup could not exit fullscreen", err));
+      }
+    };
+  }, [finishQuiz, toast]);
+
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -51,7 +100,7 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
 
   const handlePrev = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prev) => prev + 1);
+      setCurrentQuestionIndex((prev) => prev - 1);
     }
   };
   
@@ -75,7 +124,7 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
   const seconds = timeLeft % 60;
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 max-w-7xl mx-auto">
+    <div ref={quizContainerRef} className="flex flex-col md:flex-row gap-8 max-w-7xl mx-auto bg-background p-4 rounded-lg" onCopy={(e) => e.preventDefault()}>
       <div className="flex-grow">
         <Card className="shadow-lg">
           <CardHeader className="border-b">
