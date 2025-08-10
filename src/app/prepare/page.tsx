@@ -5,9 +5,8 @@ import { ConfigurationForm } from './configuration';
 import { Quiz } from './quiz';
 import { Results } from './results';
 import type { Question, Answers } from '@/lib/types';
-import { BookOpen, LogIn } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 
 type GameState = 'configuring' | 'taking_quiz' | 'viewing_results';
 
@@ -18,10 +17,6 @@ const Header = () => (
         <BookOpen className="w-8 h-8 text-primary" />
         <h1 className="text-2xl font-bold">CET Prep</h1>
       </Link>
-      <Button variant="ghost">
-        <LogIn className="mr-2 h-4 w-4" />
-        User Profile
-      </Button>
     </div>
   </header>
 );
