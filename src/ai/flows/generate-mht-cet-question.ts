@@ -51,12 +51,14 @@ const generateMHTCETQuestionPrompt = ai.definePrompt({
   name: 'generateMHTCETQuestionPrompt',
   input: {schema: GenerateMHTCETQuestionInputSchema},
   output: {schema: GenerateMHTCETQuestionOutputSchema},
-  prompt: `You are an expert MHT CET question setter.
+  prompt: `You are an expert MHT CET question setter. Your task is to generate a precise number of questions as requested.
+
+  Generate EXACTLY {{numQuestions}} multiple-choice questions. Do not generate more or fewer than this number.
   
   {{#if chapters}}
-  Generate {{numQuestions}} multiple-choice questions for {{subject}} from the chapters {{chapters}}, with a difficulty mix of: {{difficultyMix}}.
+  The questions should be for {{subject}} from the chapters: {{chapters}}, with a difficulty mix of: {{difficultyMix}}.
   {{else}}
-  Generate {{numQuestions}} multiple-choice questions for a full syllabus MHT CET test for {{subject}}, with a difficulty mix of: {{difficultyMix}}.
+  The questions should be for a full syllabus MHT CET test for {{subject}}, with a difficulty mix of: {{difficultyMix}}.
   {{/if}}
 
   For subjects like Physics, Biology, and Chemistry, approximately 20% of the questions should require a diagram to be answered.
@@ -76,11 +78,16 @@ const generateMHTCETQuestionFlow = ai.defineFlow(
   },
   async (input) => {
     const result = await generateMHTCETQuestionPrompt(input);
-    const questions = result.output?.questions || [];
+    let questions = result.output?.questions || [];
     
-    // Ensure the exact number of questions is returned
-    if (questions.length > input.numQuestions) {
-      return { questions: questions.slice(0, input.numQuestions) };
+    // Safeguard: Ensure the exact number of questions is returned.
+    if (questions.length !== input.numQuestions) {
+      // If more questions are generated, slice the array.
+      if (questions.length > input.numQuestions) {
+        questions = questions.slice(0, input.numQuestions);
+      }
+      // Note: If fewer questions are returned, we cannot generate more within this flow,
+      // but the prompt is instructed to prevent this. The calling action might need to handle this case if it occurs.
     }
     
     return { questions };
