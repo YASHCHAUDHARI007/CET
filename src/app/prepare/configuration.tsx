@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateTest } from "./actions";
 import { useState } from "react";
@@ -31,12 +30,42 @@ import type { Question } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { MultiSelect } from "@/components/ui/multi-select";
+
+
+const chapterData: Record<"Physics" | "Chemistry" | "Mathematics" | "Biology", string[]> = {
+  Physics: [
+    "Rotational Dynamics", "Mechanical Properties of Fluids", "Kinetic Theory of Gases and Radiation", "Thermodynamics",
+    "Oscillations", "Superposition of Waves", "Wave Optics", "Electrostatics", "Current Electricity",
+    "Magnetic Fields due to Electric Current", "Magnetic Materials", "Electromagnetic Induction", "AC Circuits",
+    "Dual Nature of Radiation and Matter", "Structure of Atoms and Nuclei", "Semiconductor Devices"
+  ],
+  Chemistry: [
+    "Solid State", "Solutions", "Ionic Equilibria", "Chemical Thermodynamics", "Electrochemistry", "Chemical Kinetics",
+    "Elements of Groups 16, 17 and 18", "Transition and Inner transition Elements", "Coordination Compounds",
+    "Halogen Derivatives", "Alcohols, Phenols and Ethers", "Aldehydes, Ketones and Carboxylic Acids", "Amines",
+    "Biomolecules", "Introduction to Polymer Chemistry", "Green Chemistry and Nanochemistry"
+  ],
+  Mathematics: [
+    "Mathematical Logic", "Matrices", "Trigonometric Functions", "Pair of Straight Lines", "Vectors", "Line and Plane",
+    "Linear Programming", "Differentiation", "Applications of Derivatives", "Indefinite Integration", "Definite Integration",
+    "Application of Definite Integration", "Differential Equations", "Probability Distribution", "Binomial Distribution"
+  ],
+  Biology: [
+    "Reproduction in Lower and Higher Plants", "Reproduction in Lower and Higher Animals", "Inheritance and Variation",
+    "Molecular Basis of Inheritance", "Origin and Evolution of Life", "Plant Water Relation",
+    "Plant Growth and Mineral Nutrition", "Respiration and Circulation", "Control and Co-ordination",
+    "Human Health and Diseases", "Enhancement of Food Production", "Biotechnology", "Organisms and Populations",
+    "Ecosystems and Energy Flow", "Biodiversity, Conservation and Environmental Issues"
+  ],
+};
+
 
 const formSchema = z.object({
   subject: z.enum(["Physics", "Chemistry", "Mathematics", "Biology", "PCM (Full Syllabus)", "PCB (Full Syllabus)"], {
     required_error: "Please select a subject.",
   }),
-  chapters: z.string(),
+  chapters: z.array(z.string()),
   difficultyMix: z.enum(["Easy", "Medium", "Hard"], {
     required_error: "Please select a difficulty.",
   }),
@@ -55,7 +84,7 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      chapters: "",
+      chapters: [],
       difficultyMix: "Medium",
       numQuestions: 10,
       timeLimit: 15,
@@ -71,12 +100,11 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
   const isFullSyllabus = selectedSubject === "PCM (Full Syllabus)" || selectedSubject === "PCB (Full Syllabus)";
 
   useEffect(() => {
+    form.setValue('chapters', []);
     if (selectedSubject === "PCM (Full Syllabus)") {
-      form.setValue('chapters', '');
       form.setValue('numQuestions', 150);
       form.setValue('timeLimit', 180);
     } else if (selectedSubject === "PCB (Full Syllabus)") {
-      form.setValue('chapters', '');
       form.setValue('numQuestions', 200);
       form.setValue('timeLimit', 180);
     }
@@ -85,8 +113,8 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      if (!isFullSyllabus && (!values.chapters || values.chapters.trim().length < 3)) {
-        form.setError("chapters", { type: "manual", message: "Please enter at least one chapter." });
+      if (!isFullSyllabus && (!values.chapters || values.chapters.length === 0)) {
+        form.setError("chapters", { type: "manual", message: "Please select at least one chapter." });
         setIsLoading(false);
         return;
       }
@@ -111,6 +139,8 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
        setIsLoading(false);
     }
   }
+
+  const availableChapters = selectedSubject && !isFullSyllabus ? chapterData[selectedSubject as keyof typeof chapterData] : [];
 
   return (
     <>
@@ -178,21 +208,23 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
                   </FormItem>
                 )}
               />
-              {!isFullSyllabus && (
-                <FormField
+              {!isFullSyllabus && selectedSubject && (
+                 <FormField
                   control={form.control}
                   name="chapters"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Chapters</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="e.g., Rotational Dynamics, Thermodynamics, Electrostatics"
-                          {...field}
+                        <MultiSelect
+                          options={availableChapters.map(c => ({label: c, value: c}))}
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          placeholder="Select chapters..."
+                          animation={2}
+                          maxCount={5}
                         />
-                      </FormControl>
                       <FormDescription>
-                        Enter chapter names, separated by commas.
+                        Select the chapters you want to include in the test.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
