@@ -2,7 +2,9 @@
 "use server";
 
 import { generateMHTCETQuestion, GenerateMHTCETQuestionInput } from "@/ai/flows/generate-mht-cet-question";
+import { generateDiagram } from "@/ai/flows/generate-diagram-flow";
 import { z } from "zod";
+import type { Question } from "@/lib/types";
 
 const formSchema = z.object({
   subject: z.enum(["Physics", "Chemistry", "Mathematics", "Biology", "PCM (Full Syllabus)", "PCB (Full Syllabus)"]),
@@ -28,6 +30,27 @@ async function generateQuestionsForSubject(baseInput: Omit<GenerateMHTCETQuestio
     return result.questions;
 }
 
+async function processQuestionDiagrams(questions: Question[]): Promise<Question[]> {
+    const diagramPromises = questions.map(async (question) => {
+        if (question.diagramDescription) {
+            try {
+                const diagramResult = await generateDiagram({ description: question.diagramDescription });
+                if (diagramResult.diagramDataUri) {
+                    return { ...question, diagram: diagramResult.diagramDataUri };
+                }
+            } catch (error) {
+                console.error("Failed to generate diagram:", error);
+                // Fail gracefully, return question without diagram
+                return question;
+            }
+        }
+        return question;
+    });
+
+    return Promise.all(diagramPromises);
+}
+
+
 export async function generateTest(data: FormSchema) {
   const validatedData = formSchema.safeParse(data);
 
@@ -38,6 +61,8 @@ export async function generateTest(data: FormSchema) {
   const { subject, chapters, difficultyMix, numQuestions, timeLimit } = validatedData.data;
 
   try {
+     let allQuestions: Question[] = [];
+
      if (subject === "PCM (Full Syllabus)") {
         const baseInput = { difficultyMix };
         const [physicsQuestions, chemistryQuestions, mathQuestions] = await Promise.all([
@@ -45,8 +70,7 @@ export async function generateTest(data: FormSchema) {
             generateQuestionsForSubject(baseInput, "Chemistry", 50),
             generateQuestionsForSubject(baseInput, "Mathematics", 50),
         ]);
-        const allQuestions = [...physicsQuestions, ...chemistryQuestions, ...mathQuestions];
-        return { success: true, questions: allQuestions, timeLimit: 180 };
+        allQuestions = [...physicsQuestions, ...chemistryQuestions, ...mathQuestions];
 
     } else if (subject === "PCB (Full Syllabus)") {
         const baseInput = { difficultyMix };
@@ -55,8 +79,7 @@ export async function generateTest(data: FormSchema) {
             generateQuestionsForSubject(baseInput, "Chemistry", 50),
             generateQuestionsForSubject(baseInput, "Biology", 100),
         ]);
-        const allQuestions = [...physicsQuestions, ...chemistryQuestions, ...biologyQuestions];
-        return { success: true, questions: allQuestions, timeLimit: 180 };
+        allQuestions = [...physicsQuestions, ...chemistryQuestions, ...biologyQuestions];
     }
     else {
         if (!chapters || chapters.length === 0) {
@@ -70,11 +93,16 @@ export async function generateTest(data: FormSchema) {
         };
         const result = await generateMHTCETQuestion(aiInput);
         if (result && result.questions) {
-            return { success: true, questions: result.questions, timeLimit };
+            allQuestions = result.questions;
         } else {
             return { success: false, error: "Failed to generate questions. The AI model might be unavailable." };
         }
     }
+
+    const questionsWithDiagrams = await processQuestionDiagrams(allQuestions);
+
+    return { success: true, questions: questionsWithDiagrams, timeLimit: subject.includes('Syllabus') ? 180 : timeLimit };
+    
   } catch (e) {
     console.error(e);
     return { success: false, error: "An unexpected error occurred while generating questions." };

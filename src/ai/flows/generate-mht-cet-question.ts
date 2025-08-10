@@ -33,6 +33,8 @@ const GeneratedQuestionSchema = z.object({
   answer: z.string().describe('The correct answer (A, B, C, or D).'),
   explanation: z.string().describe('A detailed explanation of the correct answer.'),
   marks: z.number().int().describe('The marks for the question.'),
+  diagramDescription: z.string().optional().describe('A detailed textual description of a diagram needed for the question. If no diagram is needed, this field should be omitted.'),
+  diagram: z.string().optional().describe("A data URI of a generated diagram image. This is added in a later step."),
 });
 
 const GenerateMHTCETQuestionOutputSchema = z.object({
@@ -58,10 +60,14 @@ const generateMHTCETQuestionPrompt = ai.definePrompt({
   - For PCM (Full Syllabus), generate 50 questions each from Physics, Chemistry, and Mathematics.
   - For PCB (Full Syllabus), generate 100 questions from Biology, 50 from Physics, and 50 from Chemistry.
   {{/if}}
+
+  For subjects like Physics, Biology, and Chemistry, approximately 20% of the questions should require a diagram to be answered.
+  If a question requires a diagram, provide a detailed textual description of the diagram in the 'diagramDescription' field. The description should be clear enough for an image generation model to create a simple, clean, 2D black and white line-art diagram. Example: "A simple circuit diagram showing a 12V battery connected in series with a 4 Ohm resistor and a switch." or "A diagram of a plant cell showing the cell wall, cell membrane, nucleus, and chloroplasts."
+  If no diagram is needed, omit the 'diagramDescription' field.
   
   Follow the MHT CET syllabus and style. Each question must have 4 options (A-D), one correct answer, a detailed explanation, and marks.
   Assign 1 mark for Physics, Chemistry, and Biology questions. Assign 2 marks for Mathematics questions.
-  Output only valid JSON with fields: subject, chapter, question, options[], answer, explanation, marks.`,
+  Output only valid JSON with fields: subject, chapter, question, options[], answer, explanation, marks, and optionally diagramDescription.`,
 });
 
 const generateMHTCETQuestionFlow = ai.defineFlow(

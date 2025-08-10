@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Bookmark, ChevronLeft, ChevronRight, Timer, X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 type QuizProps = {
   questions: Question[];
@@ -35,7 +36,7 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
   const quizContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const isPcmTest = questions.some(q => q.subject === "Mathematics") && questions.length === 150;
+  const isPcmTest = useMemo(() => questions.some(q => q.subject === "Mathematics") && questions.length === 150, [questions]);
 
   useEffect(() => {
     if (isPcmTest) {
@@ -52,7 +53,6 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
        setSections(singleSection);
        setTimeLeft(singleSection[0].time);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions, timeLimit, isPcmTest]);
   
   const currentSection = sections[currentSectionIndex];
@@ -194,6 +194,11 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
             <Progress value={progress} className="mt-2"/>
           </CardHeader>
           <CardContent className="pt-6">
+            {currentQuestion.diagram && (
+                <div className="mb-4 border rounded-md p-2 flex justify-center bg-gray-50">
+                    <Image src={currentQuestion.diagram} alt={`Diagram for question ${currentQuestionIndex + 1}`} width={300} height={200} className="object-contain" />
+                </div>
+            )}
             <p className="text-lg font-semibold mb-6">{currentQuestion.question}</p>
             <RadioGroup key={globalQuestionIndex} value={answers[globalQuestionIndex]} onValueChange={handleAnswerChange}>
                 {currentQuestion.options.map((option, index) => {
@@ -302,5 +307,3 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
     </div>
   );
 }
-
-    

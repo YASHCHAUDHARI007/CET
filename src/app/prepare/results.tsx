@@ -4,8 +4,9 @@ import type { Question, Answers } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle2, Award, Clock, XCircle, RefreshCw } from "lucide-react";
+import { CheckCircle2, Award, Clock, XCircle, RefreshCw, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 type ResultsProps = {
   questions: Question[];
@@ -87,11 +88,19 @@ export function Results({ questions, answers, onRestart }: ResultsProps) {
           <AccordionItem value={`item-${index}`} key={index}>
             <AccordionTrigger className="hover:no-underline">
               <div className="flex justify-between items-center w-full pr-4">
-                <span className="text-left font-medium">Question {index + 1} ({question.marks} {question.marks > 1 ? 'marks' : 'mark'})</span>
+                 <span className="text-left font-medium flex items-center gap-2">
+                  Question {index + 1} ({question.marks} {question.marks > 1 ? 'marks' : 'mark'})
+                  {question.diagram && <ImageIcon className="h-4 w-4 text-muted-foreground" />}
+                </span>
                 {getResultIcon(question, answers[index])}
               </div>
             </AccordionTrigger>
             <AccordionContent className="p-4 bg-card rounded-b-md">
+              {question.diagram && (
+                  <div className="mb-4 border rounded-md p-2 flex justify-center bg-gray-50">
+                      <Image src={question.diagram} alt={`Diagram for question ${index + 1}`} width={300} height={200} className="object-contain" />
+                  </div>
+              )}
               <p className="font-semibold mb-2">{question.question}</p>
               <div className="space-y-2 mb-4">
                 {question.options.map((option, optIndex) => {
