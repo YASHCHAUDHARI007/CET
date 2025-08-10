@@ -16,7 +16,7 @@ const formSchema = z.object({
 
 type FormSchema = z.infer<typeof formSchema>;
 
-async function generateQuestionsForSubject(baseInput: Omit<GenerateMHTCETQuestionInput, 'chapters'>, subject: GenerateMHTCETQuestionInput['subject'], numQuestions: number) {
+async function generateQuestionsForSubject(baseInput: Pick<GenerateMHTCETQuestionInput, 'difficultyMix'>, subject: GenerateMHTCETQuestionInput['subject'], numQuestions: number) {
     const aiInput: GenerateMHTCETQuestionInput = {
         ...baseInput,
         subject,
