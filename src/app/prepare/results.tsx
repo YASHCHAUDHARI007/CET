@@ -14,13 +14,33 @@ type ResultsProps = {
 };
 
 export function Results({ questions, answers, onRestart }: ResultsProps) {
-  const correctAnswers = questions.reduce((acc, question, index) => {
-    return answers[index] === question.answer ? acc + 1 : acc;
-  }, 0);
+  const { totalMarks, achievedMarks, correctAnswers, incorrectAnswers, notAttempted } = questions.reduce(
+    (acc, question, index) => {
+      const userAnswer = answers[index];
+      const isCorrect = userAnswer === question.answer;
 
-  const incorrectAnswers = Object.keys(answers).length - correctAnswers;
-  const notAttempted = questions.length - Object.keys(answers).length;
-  const scorePercentage = (correctAnswers / questions.length) * 100;
+      acc.totalMarks += question.marks;
+
+      if (userAnswer === undefined) {
+        acc.notAttempted += 1;
+      } else if (isCorrect) {
+        acc.correctAnswers += 1;
+        acc.achievedMarks += question.marks;
+      } else {
+        acc.incorrectAnswers += 1;
+      }
+      return acc;
+    },
+    {
+      totalMarks: 0,
+      achievedMarks: 0,
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      notAttempted: 0,
+    }
+  );
+
+  const scorePercentage = totalMarks > 0 ? (achievedMarks / totalMarks) * 100 : 0;
 
   const getResultIcon = (question: Question, userAnswer: string) => {
     if (userAnswer === undefined) {
@@ -44,7 +64,7 @@ export function Results({ questions, answers, onRestart }: ResultsProps) {
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div className="p-4 bg-primary/10 rounded-lg">
                 <p className="text-sm text-muted-foreground">Score</p>
-                <p className="text-2xl font-bold text-primary">{scorePercentage.toFixed(2)}%</p>
+                <p className="text-2xl font-bold text-primary">{achievedMarks}/{totalMarks} ({scorePercentage.toFixed(2)}%)</p>
             </div>
             <div className="p-4 bg-accent/10 rounded-lg">
                 <p className="text-sm text-muted-foreground">Correct</p>
@@ -67,7 +87,7 @@ export function Results({ questions, answers, onRestart }: ResultsProps) {
           <AccordionItem value={`item-${index}`} key={index}>
             <AccordionTrigger className="hover:no-underline">
               <div className="flex justify-between items-center w-full pr-4">
-                <span className="text-left font-medium">Question {index + 1}</span>
+                <span className="text-left font-medium">Question {index + 1} ({question.marks} {question.marks > 1 ? 'marks' : 'mark'})</span>
                 {getResultIcon(question, answers[index])}
               </div>
             </AccordionTrigger>

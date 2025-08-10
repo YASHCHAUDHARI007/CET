@@ -32,6 +32,7 @@ const GeneratedQuestionSchema = z.object({
   options: z.array(z.string()).length(4).describe('An array of four possible answers.'),
   answer: z.string().describe('The correct answer (A, B, C, or D).'),
   explanation: z.string().describe('A detailed explanation of the correct answer.'),
+  marks: z.number().int().describe('The marks for the question.'),
 });
 
 const GenerateMHTCETQuestionOutputSchema = z.object({
@@ -58,8 +59,9 @@ const generateMHTCETQuestionPrompt = ai.definePrompt({
   - For PCB (Full Syllabus), generate 100 questions from Biology, 50 from Physics, and 50 from Chemistry.
   {{/if}}
   
-  Follow the MHT CET syllabus and style. Each question must have 4 options (A-D), one correct answer, and a detailed explanation.
-  Output only valid JSON with fields: subject, chapter, question, options[], answer, explanation.`,
+  Follow the MHT CET syllabus and style. Each question must have 4 options (A-D), one correct answer, a detailed explanation, and marks.
+  Assign 1 mark for Physics, Chemistry, and Biology questions. Assign 2 marks for Mathematics questions.
+  Output only valid JSON with fields: subject, chapter, question, options[], answer, explanation, marks.`,
 });
 
 const generateMHTCETQuestionFlow = ai.defineFlow(
