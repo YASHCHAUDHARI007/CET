@@ -51,7 +51,7 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
 
   const handlePrev = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prev) => prev - 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
   
@@ -90,13 +90,13 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
           </CardHeader>
           <CardContent className="pt-6">
             <p className="text-lg font-semibold mb-6">{currentQuestion.question}</p>
-            <RadioGroup value={answers[currentQuestionIndex]} onValueChange={handleAnswerChange}>
+            <RadioGroup key={currentQuestionIndex} value={answers[currentQuestionIndex]} onValueChange={handleAnswerChange}>
                 {currentQuestion.options.map((option, index) => {
                     const optionLetter = String.fromCharCode(65 + index);
                     return (
                         <div key={index} className="flex items-center space-x-3 p-4 border rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-all">
-                            <RadioGroupItem value={optionLetter} id={`option-${index}`} />
-                            <Label htmlFor={`option-${index}`} className="text-base flex-grow cursor-pointer">
+                            <RadioGroupItem value={optionLetter} id={`q${currentQuestionIndex}-option-${index}`} />
+                            <Label htmlFor={`q${currentQuestionIndex}-option-${index}`} className="text-base flex-grow cursor-pointer">
                                 {optionLetter}. {option}
                             </Label>
                         </div>
