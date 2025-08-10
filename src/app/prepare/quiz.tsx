@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Bookmark, ChevronLeft, ChevronRight, Timer, X } from "lucide-react";
+import { Bookmark, ChevronLeft, ChevronRight, Timer, X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,23 +19,72 @@ type QuizProps = {
   onExit: () => void;
 };
 
+type Section = {
+  name: string;
+  questions: Question[];
+  time: number; // in seconds
+};
+
 export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
+  const [sections, setSections] = useState<Section[]>([]);
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(timeLimit * 60);
   const [markedForReview, setMarkedForReview] = useState<MarkedForReview>([]);
   const quizContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  const isPcmTest = questions.some(q => q.subject === "Mathematics") && questions.length === 150;
+
+  useEffect(() => {
+    if (isPcmTest) {
+      const pncQuestions = questions.filter(q => q.subject === 'Physics' || q.subject === 'Chemistry');
+      const mathQuestions = questions.filter(q => q.subject === 'Mathematics');
+      const pcmSections = [
+        { name: 'Physics & Chemistry', questions: pncQuestions, time: 90 * 60 },
+        { name: 'Mathematics', questions: mathQuestions, time: 90 * 60 },
+      ];
+      setSections(pcmSections);
+      setTimeLeft(pcmSections[0].time);
+    } else {
+       const singleSection = [{ name: 'Test', questions: questions, time: timeLimit * 60 }];
+       setSections(singleSection);
+       setTimeLeft(singleSection[0].time);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions, timeLimit, isPcmTest]);
+  
+  const currentSection = sections[currentSectionIndex];
+  const questionsInCurrentSection = currentSection?.questions || [];
+  
+  const globalQuestionIndex = useMemo(() => {
+    if (currentSectionIndex === 0 || !isPcmTest) {
+      return currentQuestionIndex;
+    }
+    // For section 2, offset index by length of section 1
+    return sections[0].questions.length + currentQuestionIndex;
+  }, [currentQuestionIndex, currentSectionIndex, sections, isPcmTest]);
+
+
   const finishQuiz = useCallback(() => {
-    // Exit fullscreen before finishing
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(err => console.error("Could not exit fullscreen", err));
     }
     onFinish(answers);
   }, [answers, onFinish]);
 
-  // Fullscreen and anti-cheating effects
+  const finishSection = useCallback(() => {
+    if (isPcmTest && currentSectionIndex < sections.length - 1) {
+      setCurrentSectionIndex(prev => prev + 1);
+      setCurrentQuestionIndex(0);
+      setMarkedForReview([]);
+      setTimeLeft(sections[currentSectionIndex + 1].time);
+    } else {
+      finishQuiz();
+    }
+  }, [isPcmTest, currentSectionIndex, sections, finishQuiz]);
+
   useEffect(() => {
     const elem = quizContainerRef.current;
     if (elem) {
@@ -79,21 +128,21 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
 
   useEffect(() => {
     if (timeLeft <= 0) {
-      finishQuiz();
+      finishSection();
       return;
     }
     const timer = setInterval(() => {
       setTimeLeft((prev) => prev - 1);
     }, 1000);
     return () => clearInterval(timer);
-  }, [timeLeft, finishQuiz]);
+  }, [timeLeft, finishSection]);
 
   const handleAnswerChange = (value: string) => {
-    setAnswers((prev) => ({ ...prev, [currentQuestionIndex]: value }));
+    setAnswers((prev) => ({ ...prev, [globalQuestionIndex]: value }));
   };
 
   const handleNext = () => {
-    if (currentQuestionIndex < questions.length - 1) {
+    if (currentQuestionIndex < questionsInCurrentSection.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
@@ -117,9 +166,13 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
         }
     })
   }
+  
+  if (!currentSection) {
+    return <div className="text-center p-8"><Timer className="h-8 w-8 animate-spin" /> <p>Loading test...</p></div>
+  }
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const currentQuestion = questionsInCurrentSection[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / questionsInCurrentSection.length) * 100;
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
@@ -129,23 +182,26 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
         <Card className="shadow-lg">
           <CardHeader className="border-b">
             <div className="flex justify-between items-center">
-                <CardTitle>Question {currentQuestionIndex + 1} of {questions.length}</CardTitle>
-                <div className="flex items-center gap-2 bg-primary/10 text-primary font-semibold px-3 py-1.5 rounded-full">
-                    <Timer className="w-5 h-5" />
-                    <span>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</span>
-                </div>
+              <div>
+                <CardTitle>Question {currentQuestionIndex + 1} of {questionsInCurrentSection.length}</CardTitle>
+                {isPcmTest && <p className="text-sm text-muted-foreground mt-1">Section: {currentSection.name}</p>}
+              </div>
+              <div className="flex items-center gap-2 bg-primary/10 text-primary font-semibold px-3 py-1.5 rounded-full">
+                  <Timer className="w-5 h-5" />
+                  <span>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</span>
+              </div>
             </div>
             <Progress value={progress} className="mt-2"/>
           </CardHeader>
           <CardContent className="pt-6">
             <p className="text-lg font-semibold mb-6">{currentQuestion.question}</p>
-            <RadioGroup key={currentQuestionIndex} value={answers[currentQuestionIndex]} onValueChange={handleAnswerChange}>
+            <RadioGroup key={globalQuestionIndex} value={answers[globalQuestionIndex]} onValueChange={handleAnswerChange}>
                 {currentQuestion.options.map((option, index) => {
                     const optionLetter = String.fromCharCode(65 + index);
                     return (
                         <div key={index} className="flex items-center space-x-3 p-4 border rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-all">
-                            <RadioGroupItem value={optionLetter} id={`q${currentQuestionIndex}-option-${index}`} />
-                            <Label htmlFor={`q${currentQuestionIndex}-option-${index}`} className="text-base flex-grow cursor-pointer">
+                            <RadioGroupItem value={optionLetter} id={`q${globalQuestionIndex}-option-${index}`} />
+                            <Label htmlFor={`q${globalQuestionIndex}-option-${index}`} className="text-base flex-grow cursor-pointer">
                                 {optionLetter}. {option}
                             </Label>
                         </div>
@@ -161,21 +217,28 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
            <Button variant="outline" onClick={toggleMarkForReview} className={cn(markedForReview.includes(currentQuestionIndex) && 'bg-accent text-accent-foreground')}>
             <Bookmark className="mr-2 h-4 w-4"/> Mark for Review
           </Button>
-          {currentQuestionIndex === questions.length - 1 ? (
+          {currentQuestionIndex === questionsInCurrentSection.length - 1 ? (
              <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button className="bg-accent hover:bg-accent/90">Finish Test</Button>
+                    <Button className="bg-accent hover:bg-accent/90">
+                      {isPcmTest && currentSectionIndex < sections.length - 1 ? "Finish Section" : "Finish Test"}
+                      {isPcmTest && currentSectionIndex < sections.length - 1 && <ArrowRight className="ml-2 h-4 w-4" />}
+                    </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure you want to finish?</AlertDialogTitle>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This will submit all your answers and end the test. You cannot go back.
+                       {isPcmTest && currentSectionIndex < sections.length - 1 
+                        ? "You are about to finish this section. You will not be able to return to it." 
+                        : "This will submit all your answers and end the test. You cannot go back."}
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={finishQuiz} className="bg-accent hover:bg-accent/90">Yes, Finish Test</AlertDialogAction>
+                    <AlertDialogAction onClick={finishSection} className="bg-accent hover:bg-accent/90">
+                      Yes, {isPcmTest && currentSectionIndex < sections.length - 1 ? "Proceed" : "Finish Test"}
+                    </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -190,11 +253,13 @@ export function Quiz({ questions, timeLimit, onFinish, onExit }: QuizProps) {
         <Card className="shadow-lg">
             <CardHeader>
                 <CardTitle className="text-lg">Question Palette</CardTitle>
+                {isPcmTest && <p className="text-sm text-muted-foreground">{currentSection.name}</p>}
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-5 gap-2">
-                    {questions.map((_, index) => {
-                        const isAnswered = answers[index] !== undefined;
+                    {questionsInCurrentSection.map((_, index) => {
+                        const globalIdx = isPcmTest && currentSectionIndex === 1 ? index + sections[0].questions.length : index;
+                        const isAnswered = answers[globalIdx] !== undefined;
                         const isMarked = markedForReview.includes(index);
                         const isCurrent = index === currentQuestionIndex;
                         return (
