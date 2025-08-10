@@ -29,7 +29,8 @@ import { generateTest } from "./actions";
 import { useState } from "react";
 import type { Question } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const formSchema = z.object({
   subject: z.enum(["Physics", "Chemistry", "Mathematics", "Biology", "PCM (Full Syllabus)", "PCB (Full Syllabus)"], {
@@ -95,6 +96,7 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
           title: "Error Generating Test",
           description: result.error || "An unknown error occurred.",
         });
+        setIsLoading(false);
       }
     } catch (error) {
        toast({
@@ -102,135 +104,162 @@ export function ConfigurationForm({ onTestGenerated }: ConfigurationFormProps) {
         title: "Client-side Error",
         description: "Could not connect to the server. Please try again.",
       });
-    } finally {
-      setIsLoading(false);
+       setIsLoading(false);
     }
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-2xl">
-          <Sparkles className="text-primary" />
-          Create Your Custom Test
-        </CardTitle>
-        <CardDescription>
-          Configure the parameters below and our AI will generate a unique test just for you.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="subject"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subject</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a subject" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Physics">Physics</SelectItem>
-                      <SelectItem value="Chemistry">Chemistry</SelectItem>
-                      <SelectItem value="Mathematics">Mathematics</SelectItem>
-                      <SelectItem value="Biology">Biology</SelectItem>
-                      <SelectItem value="PCM (Full Syllabus)">PCM (Full Syllabus)</SelectItem>
-                      <SelectItem value="PCB (Full Syllabus)">PCB (Full Syllabus)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {!isFullSyllabus && (
+    <>
+      <Dialog open={isLoading}>
+        <DialogContent className="sm:max-w-md" hideCloseButton>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="text-primary" />
+              Test Rules & Instructions
+            </DialogTitle>
+            <DialogDescription>
+              Please read the following rules carefully before starting the test.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 text-sm text-muted-foreground">
+            <ul className="list-disc pl-5 space-y-2">
+                <li>The test will start in fullscreen mode to prevent distractions.</li>
+                <li>Exiting fullscreen mode will automatically submit and end your test.</li>
+                <li>Copying, pasting, or switching tabs is disabled during the test.</li>
+                <li>A timer will be visible at the top. The test will auto-submit when the time runs out.</li>
+                <li>You can navigate between questions using the palette on the right.</li>
+            </ul>
+             <div className="flex items-center justify-center p-8 flex-col gap-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="font-semibold text-foreground">Our AI is generating your personalized test... Please wait.</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Card className="w-full max-w-2xl mx-auto shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-2xl">
+            <Sparkles className="text-primary" />
+            Create Your Custom Test
+          </CardTitle>
+          <CardDescription>
+            Configure the parameters below and our AI will generate a unique test just for you.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
-                name="chapters"
+                name="subject"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Chapters</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="e.g., Rotational Dynamics, Thermodynamics, Electrostatics"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Enter chapter names, separated by commas.
-                    </FormDescription>
+                    <FormLabel>Subject</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a subject" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Physics">Physics</SelectItem>
+                        <SelectItem value="Chemistry">Chemistry</SelectItem>
+                        <SelectItem value="Mathematics">Mathematics</SelectItem>
+                        <SelectItem value="Biology">Biology</SelectItem>
+                        <SelectItem value="PCM (Full Syllabus)">PCM (Full Syllabus)</SelectItem>
+                        <SelectItem value="PCB (Full Syllabus)">PCB (Full Syllabus)</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <FormField
-                control={form.control}
-                name="numQuestions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Number of Questions</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} disabled={isFullSyllabus}/>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="timeLimit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Time Limit (Minutes)</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} disabled={isFullSyllabus}/>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
+              {!isFullSyllabus && (
+                <FormField
                   control={form.control}
-                  name="difficultyMix"
+                  name="chapters"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Difficulty</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a difficulty" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Easy">Easy</SelectItem>
-                          <SelectItem value="Medium">Medium</SelectItem>
-                          <SelectItem value="Hard">Hard</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Chapters</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="e.g., Rotational Dynamics, Thermodynamics, Electrostatics"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Enter chapter names, separated by commas.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-            </div>
-            
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading || !selectedSubject}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating Test...
-                </>
-              ) : (
-                "Start Test"
               )}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormField
+                  control={form.control}
+                  name="numQuestions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Number of Questions</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} disabled={isFullSyllabus}/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="timeLimit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Time Limit (Minutes)</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} disabled={isFullSyllabus}/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="difficultyMix"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Difficulty</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a difficulty" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Easy">Easy</SelectItem>
+                            <SelectItem value="Medium">Medium</SelectItem>
+                            <SelectItem value="Hard">Hard</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+              </div>
+              
+              <Button type="submit" className="w-full" size="lg" disabled={isLoading || !selectedSubject}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Start Test"
+                )}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </>
   );
 }
