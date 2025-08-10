@@ -10,12 +10,6 @@ const Header = () => (
         <BookOpen className="w-8 h-8 text-primary" />
         <h1 className="text-2xl font-bold text-foreground">CET Prep</h1>
       </div>
-      <Button variant="ghost" asChild>
-        <Link href="/prepare">
-          Start Preparing
-          <LogIn className="ml-2 h-4 w-4" />
-        </Link>
-      </Button>
     </div>
   </header>
 );
