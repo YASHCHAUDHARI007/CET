@@ -16,7 +16,7 @@ const formSchema = z.object({
 
 type FormSchema = z.infer<typeof formSchema>;
 
-async function generateQuestionsForSubject(subject: "Physics" | "Chemistry" | "Mathematics" | "Biology", numQuestions: number, difficultyMix: string, chapters: string = '') {
+async function generateQuestionsForSubject(subject: "Physics" | "Chemistry" | "Mathematics" | "Biology", numQuestions: number, difficultyMix: string, chapters: string) {
     const aiInput: GenerateMHTCETQuestionInput = {
         subject,
         numQuestions,
@@ -24,10 +24,11 @@ async function generateQuestionsForSubject(subject: "Physics" | "Chemistry" | "M
         chapters,
     };
     const result = await generateMHTCETQuestion(aiInput);
-    if (!result || !result.questions || result.questions.length !== numQuestions) {
-        throw new Error(`Failed to generate exactly ${numQuestions} questions for ${subject}.`);
+    if (!result || !result.questions) {
+        throw new Error(`Failed to generate questions for ${subject}.`);
     }
-    return result.questions;
+     // The AI might return slightly more questions than requested, so we slice it.
+    return result.questions.slice(0, numQuestions);
 }
 
 
@@ -66,17 +67,17 @@ export async function generateTest(data: FormSchema) {
 
      if (subject === "PCM (Full Syllabus)") {
         const [physicsQuestions, chemistryQuestions, mathQuestions] = await Promise.all([
-            generateQuestionsForSubject("Physics", 50, difficultyMix),
-            generateQuestionsForSubject("Chemistry", 50, difficultyMix),
-            generateQuestionsForSubject("Mathematics", 50, difficultyMix),
+            generateQuestionsForSubject("Physics", 50, difficultyMix, ""),
+            generateQuestionsForSubject("Chemistry", 50, difficultyMix, ""),
+            generateQuestionsForSubject("Mathematics", 50, difficultyMix, ""),
         ]);
         allQuestions = [...physicsQuestions, ...chemistryQuestions, ...mathQuestions];
 
     } else if (subject === "PCB (Full Syllabus)") {
         const [physicsQuestions, chemistryQuestions, biologyQuestions] = await Promise.all([
-            generateQuestionsForSubject("Physics", 50, difficultyMix),
-            generateQuestionsForSubject("Chemistry", 50, difficultyMix),
-            generateQuestionsForSubject("Biology", 100, difficultyMix),
+            generateQuestionsForSubject("Physics", 50, difficultyMix, ""),
+            generateQuestionsForSubject("Chemistry", 50, difficultyMix, ""),
+            generateQuestionsForSubject("Biology", 100, difficultyMix, ""),
         ]);
         allQuestions = [...physicsQuestions, ...chemistryQuestions, ...biologyQuestions];
     }
@@ -95,6 +96,7 @@ export async function generateTest(data: FormSchema) {
     
   } catch (e) {
     console.error(e);
-    return { success: false, error: "An unexpected error occurred while generating questions." };
+    const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred.";
+    return { success: false, error: `An unexpected error occurred while generating questions: ${errorMessage}` };
   }
 }
