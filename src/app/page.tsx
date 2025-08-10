@@ -42,19 +42,14 @@ export default function Home() {
         <p className="max-w-2xl mx-auto text-lg text-muted-foreground mb-8">
           Generate unlimited, customized test series from any chapter, with adjustable difficulty. Our AI crafts unique questions to sharpen your skills for exam day.
         </p>
-        <Card className="w-full max-w-2xl shadow-lg">
-          <CardContent className="p-2">
-             <iframe
-                src="https://docs.google.com/forms/d/e/1FAIpQLSehS4B82eq_z0bLIICcmm6WXzQI69TR7aRWXWKSbPAiWhjW_w/viewform?embedded=true"
-                width="100%"
-                height="520"
-                frameBorder="0"
-                marginHeight={0}
-                marginWidth={0}>
-                Loading…
-            </iframe>
-          </CardContent>
-        </Card>
+        <Button size="lg" asChild>
+          <Link href="https://docs.google.com/forms/d/e/1FAIpQLSehS4B82eq_z0bLIICcmm6WXzQI69TR7aRWXWKSbPAiWhjW_w/viewform" target="_blank">
+            Get Started by Filling Out Our Form!
+          </Link>
+        </Button>
+        <p className="text-xs text-muted-foreground mt-4">
+          After submitting the form, you will be redirected to the test preparation page.
+        </p>
       </main>
     </div>
   );
