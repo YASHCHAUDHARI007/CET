@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 import {config} from 'dotenv';
 
@@ -10,6 +11,11 @@ const nextConfig: NextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb', // to handle large form data
+    },
   },
   images: {
     remotePatterns: [
@@ -25,11 +31,9 @@ const nextConfig: NextConfig = {
     // Allow data URIs
     domains: [''],
   },
-  experimental: {
-    // This is required to allow requests from the Firebase Studio development environment.
-    allowedDevOrigins: [
-      'https://*.cloudworkstations.dev',
-    ],
+  serverActions: {
+    // This is the correct place for executionTimeout
+    executionTimeout: 120,
   },
 };
 
