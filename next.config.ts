@@ -25,6 +25,12 @@ const nextConfig: NextConfig = {
     // Allow data URIs
     domains: [''],
   },
+  experimental: {
+    // This is required to allow requests from the Firebase Studio development environment.
+    allowedDevOrigins: [
+      'https://*.cloudworkstations.dev',
+    ],
+  },
 };
 
 export default nextConfig;
