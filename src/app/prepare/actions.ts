@@ -6,6 +6,8 @@ import { generateDiagram } from "@/ai/flows/generate-diagram-flow";
 import { z } from "zod";
 import type { Question } from "@/lib/types";
 
+export const maxDuration = 120; 
+
 const formSchema = z.object({
   subject: z.enum(["Physics", "Chemistry", "Mathematics", "Biology", "PCM (Full Syllabus)", "PCB (Full Syllabus)"]),
   chapters: z.array(z.string()),
