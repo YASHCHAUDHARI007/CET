@@ -1,4 +1,7 @@
 import type {NextConfig} from 'next';
+import {config} from 'dotenv';
+
+config();
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -19,12 +22,6 @@ const nextConfig: NextConfig = {
     ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-      },
-    ],
     // Allow data URIs
     domains: [''],
   },
