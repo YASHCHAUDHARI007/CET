@@ -66,19 +66,15 @@ export async function generateTest(data: FormSchema) {
      let allQuestions: Question[] = [];
 
      if (subject === "PCM (Full Syllabus)") {
-        const [physicsQuestions, chemistryQuestions, mathQuestions] = await Promise.all([
-            generateQuestionsForSubject("Physics", 50, difficultyMix, ""),
-            generateQuestionsForSubject("Chemistry", 50, difficultyMix, ""),
-            generateQuestionsForSubject("Mathematics", 50, difficultyMix, ""),
-        ]);
+        const physicsQuestions = await generateQuestionsForSubject("Physics", 50, difficultyMix, "");
+        const chemistryQuestions = await generateQuestionsForSubject("Chemistry", 50, difficultyMix, "");
+        const mathQuestions = await generateQuestionsForSubject("Mathematics", 50, difficultyMix, "");
         allQuestions = [...physicsQuestions, ...chemistryQuestions, ...mathQuestions];
 
     } else if (subject === "PCB (Full Syllabus)") {
-        const [physicsQuestions, chemistryQuestions, biologyQuestions] = await Promise.all([
-            generateQuestionsForSubject("Physics", 50, difficultyMix, ""),
-            generateQuestionsForSubject("Chemistry", 50, difficultyMix, ""),
-            generateQuestionsForSubject("Biology", 100, difficultyMix, ""),
-        ]);
+        const physicsQuestions = await generateQuestionsForSubject("Physics", 50, difficultyMix, "");
+        const chemistryQuestions = await generateQuestionsForSubject("Chemistry", 50, difficultyMix, "");
+        const biologyQuestions = await generateQuestionsForSubject("Biology", 100, difficultyMix, "");
         allQuestions = [...physicsQuestions, ...chemistryQuestions, ...biologyQuestions];
     }
     else {
